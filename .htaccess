@@ -1,0 +1,19 @@
+# ---------------------------------------------------------------
+# Racine de l'hébergement : tout est redirigé vers le dossier public/
+# (utile si vous ne pouvez pas choisir "public" comme dossier racine chez OVH)
+# ---------------------------------------------------------------
+Options -Indexes
+RewriteEngine On
+
+# Forcer HTTPS
+RewriteCond %{HTTPS} off
+RewriteCond %{HTTP:X-Forwarded-Proto} !https
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Interdire l'accès direct aux dossiers privés
+RewriteRule ^(app|config|database|storage|tests)(/|$) - [F,L]
+RewriteRule (^|/)\.(?!well-known) - [F,L]
+
+# Tout le reste -> public/
+RewriteCond %{REQUEST_URI} !^/public/
+RewriteRule ^(.*)$ public/$1 [L]
