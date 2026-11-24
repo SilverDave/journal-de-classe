@@ -110,6 +110,9 @@ Chaque page de `public/` suit le même schéma, de haut en bas :
 - Changer le libellé d'une appréciation : `APPRECIATIONS` dans `school.php`.
 - Ajouter un champ : ajoutez la colonne en base (phpMyAdmin), puis le champ dans la page concernée.
 
+### Mettre à jour une installation existante
+Remplacez les fichiers (gardez votre `config/config.php`). Les nouvelles tables se créent toutes seules (`evaluation_periods` à l'ouverture de *Évaluations*, `schedule_slot_validity` à l'ouverture du site) ; vous pouvez aussi importer `database/migrations/001_…sql` et `002_…sql` dans phpMyAdmin. Cette migration ne modifie aucune table existante. Faites tout de même un export de la base avant (phpMyAdmin › Exporter).
+
 ### Tester sur votre ordinateur (facultatif)
 Avec PHP et MySQL installés (par ex. XAMPP) : créez `config/config.php`, mettez `'mail' => ['debug' => true]`
 (le code de connexion est alors écrit dans `storage/logs/mail.log`), puis lancez
@@ -124,4 +127,6 @@ Avec PHP et MySQL installés (par ex. XAMPP) : créez `config/config.php`, mette
 - **Moyenne** : total des points obtenus ÷ total des points possibles, ramené sur 20 et sur 100. Les absences ne comptent pas.
 - **Élève désactivé** : grisé, n'apparaît plus dans les présences, ses données restent.
 - **Cours annulé** : exclu des statistiques et des présences manquantes.
+- **Dates d'un cours de l'horaire** : « premier jour » et « dernier jour » facultatifs (remplacements, cours qui s'arrête en fin d'année). Rythme « un mois sur deux » : un mois de cours sur deux à partir du mois du premier jour. Sans dates = toute l'année. Les cours déjà donnés restent dans le journal. Données dans la table `schedule_slot_validity` (l'horaire existant n'est pas modifié).
+- **Période d'évaluation** : un début et une fin, propres à chaque école et année (page *Évaluations*). Une évaluation appartient à la période qui contient sa date. La moyenne d'une élève sur une période = total des points ÷ total possible des évaluations de la période, sur 20. La ligne en surbrillance donne la moyenne de classe de la période (moyenne des élèves) ; le tableau « Moyennes par période » reprend uniquement les moyennes.
 - **Année archivée** : consultable, plus modifiable (désarchivage possible).

@@ -38,8 +38,10 @@ require ROOT . '/app/lib/mailer.php';
 require ROOT . '/app/lib/auth.php';
 require ROOT . '/app/lib/school.php';
 require ROOT . '/app/lib/years.php';
+require ROOT . '/app/lib/slot_validity.php';
 require ROOT . '/app/lib/calendar.php';
 require ROOT . '/app/lib/stats.php';
+require ROOT . '/app/lib/eval_periods.php';
 require ROOT . '/app/lib/uploads.php';
 require ROOT . '/app/lib/view.php';
 

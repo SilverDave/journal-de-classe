@@ -51,12 +51,17 @@ function day_tranches(string $date, array $year, ?array $holidays = null): array
     $base = 'c.name AS class_name, c.color, c.subject, s.name AS school_name';
 
     if (is_school_day($date, $year, $holidays)) {
+        $ready = slot_validity_ready();
         $slots = fetch_all(
-            "SELECT sl.class_id, sl.start_period, sl.duration, sl.room, $base
-             FROM schedule_slots sl JOIN classes c ON c.id = sl.class_id JOIN schools s ON s.id = c.school_id
+            "SELECT sl.class_id, sl.start_period, sl.duration, sl.room, $base" . ($ready ? ', v.valid_from, v.valid_to, v.month_step' : '') . "
+             FROM schedule_slots sl JOIN classes c ON c.id = sl.class_id JOIN schools s ON s.id = c.school_id"
+            . ($ready ? ' LEFT JOIN schedule_slot_validity v ON v.slot_id = sl.id' : '') . "
              WHERE c.school_year_id = ? AND sl.weekday = ?",
             [$year['id'], (int)date('N', strtotime($date))]);
         foreach ($slots as $sl) {
+            if (!slot_active_on($sl, $date)) {
+                continue; // remplacement terminé / pas encore commencé / mois « off »
+            }
             $sl += ['lesson_id' => null, 'title' => null, 'document_url' => null, 'attendance_saved_at' => null, 'cancelled' => 0];
             $tranches[$sl['class_id'] . '-' . $sl['start_period']] = $sl;
         }
@@ -114,13 +119,22 @@ function missing_attendance(array $year, int $days = 14): array
     return array_reverse($missing);
 }
 
-/** Vérifie qu'un créneau d'horaire ne chevauche pas un autre cours le même jour. */
-function slot_overlaps(int $yearId, int $weekday, int $start, int $duration, int $ignoreId = 0): ?array
+/** Vérifie qu'un créneau d'horaire ne chevauche pas un autre cours le même jour (aux mêmes dates). */
+function slot_overlaps(int $yearId, int $weekday, int $start, int $duration, int $ignoreId = 0, array $validity = []): ?array
 {
     $end = $start + $duration - 1;
-    return fetch_one(
-        'SELECT sl.*, c.name AS class_name FROM schedule_slots sl JOIN classes c ON c.id = sl.class_id
+    $ready = slot_validity_ready();
+    $rows = fetch_all(
+        'SELECT sl.*, c.name AS class_name' . ($ready ? ', v.valid_from, v.valid_to, v.month_step' : '') . '
+         FROM schedule_slots sl JOIN classes c ON c.id = sl.class_id'
+        . ($ready ? ' LEFT JOIN schedule_slot_validity v ON v.slot_id = sl.id' : '') . '
          WHERE c.school_year_id = ? AND sl.weekday = ? AND sl.id <> ?
            AND sl.start_period <= ? AND (sl.start_period + sl.duration - 1) >= ?',
         [$yearId, $weekday, $ignoreId, $end, $start]);
+    foreach ($rows as $r) {
+        if (slot_ranges_conflict($r, $validity)) {
+            return $r;
+        }
+    }
+    return null;
 }

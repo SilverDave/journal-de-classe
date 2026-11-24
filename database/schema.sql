@@ -109,6 +109,15 @@ CREATE TABLE IF NOT EXISTS schedule_slots (
   CONSTRAINT fk_slots_class FOREIGN KEY (class_id) REFERENCES classes(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Dates de début/fin d'un créneau de l'horaire (remplacements, un mois sur deux)
+CREATE TABLE IF NOT EXISTS schedule_slot_validity (
+  slot_id INT UNSIGNED NOT NULL PRIMARY KEY,
+  valid_from DATE NULL,
+  valid_to DATE NULL,
+  month_step TINYINT UNSIGNED NOT NULL DEFAULT 1,
+  CONSTRAINT fk_validity_slot FOREIGN KEY (slot_id) REFERENCES schedule_slots(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Tranche de cours réellement donnée (journal de classe)
 CREATE TABLE IF NOT EXISTS lessons (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -172,6 +181,19 @@ CREATE TABLE IF NOT EXISTS evaluation_scores (
   PRIMARY KEY (evaluation_id, student_id),
   CONSTRAINT fk_scores_eval FOREIGN KEY (evaluation_id) REFERENCES evaluations(id) ON DELETE CASCADE,
   CONSTRAINT fk_scores_student FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Périodes d'évaluation (début/fin) : servent à calculer une moyenne par période
+CREATE TABLE IF NOT EXISTS evaluation_periods (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  school_year_id INT UNSIGNED NOT NULL,
+  school_id INT UNSIGNED NOT NULL,
+  label VARCHAR(60) NOT NULL,
+  start_date DATE NOT NULL,
+  end_date DATE NOT NULL,
+  INDEX idx_evalperiods (school_year_id, school_id, start_date),
+  CONSTRAINT fk_evalperiods_year FOREIGN KEY (school_year_id) REFERENCES school_years(id) ON DELETE CASCADE,
+  CONSTRAINT fk_evalperiods_school FOREIGN KEY (school_id) REFERENCES schools(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Conseils de classe

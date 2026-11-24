@@ -455,3 +455,12 @@ tr.is-inactive .student-name { text-decoration: line-through; text-decoration-co
 }
 .pad { padding: 10px 20px 16px; }
 .grid-kpi { grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); }
+
+/* ---------- Périodes d'évaluation ---------- */
+tr.row-period-avg td { background: var(--accent-soft); border-top: 2px solid var(--accent); border-bottom: 2px solid var(--accent); font-weight: 650; }
+.period-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+.period-form { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.period-form input[type=text] { flex: 1 1 130px; min-width: 110px; }
+.period-form input[type=date] { flex: 0 1 150px; }
+.avg-table th small { display: block; font-weight: 500; text-transform: none; letter-spacing: 0; }
+.avg-table .total-col { border-left: 2px solid var(--line-strong); }
